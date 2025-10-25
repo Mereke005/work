@@ -1,0 +1,620 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Смена — Аблайхана / Елемесова (Neon)</title>
+  <style>
+    /* ---------- Neon UI (embedded) ---------- */
+    :root{
+      --bg:#060712;
+      --panel:#071027;
+      --muted:rgba(255,255,255,0.85);
+      --glass: rgba(255,255,255,0.03);
+      --neon-a: #38b6ff;
+      --neon-e: #b57bff;
+      --accent: var(--neon-a);
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; min-height:100vh; background:
+      radial-gradient(600px 300px at 10% 10%, rgba(56,182,255,0.04), transparent),
+      radial-gradient(500px 260px at 90% 90%, rgba(181,123,255,0.03), transparent),
+      linear-gradient(180deg, var(--bg), #0b1230);
+      color:var(--muted); -webkit-font-smoothing:antialiased; padding:20px;
+      display:flex; align-items:center; justify-content:center;
+    }
+
+    .card{
+      width:100%; max-width:1200px; border-radius:14px; padding:18px;
+      background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
+      backdrop-filter: blur(6px);
+      border: 1px solid rgba(255,255,255,0.04);
+      box-shadow: 0 12px 40px rgba(2,6,23,0.7);
+    }
+
+    h1{margin:0 0 8px 0; font-size:20px; background: linear-gradient(90deg,var(--neon-a),var(--neon-e)); -webkit-background-clip:text; color:transparent}
+    .muted{color:rgba(255,255,255,0.6); font-size:13px}
+
+    /* layout */
+    .auth-wrap, .app-wrap{display:flex; gap:18px; align-items:flex-start}
+    .auth-box{width:100%; max-width:520px}
+    .field{display:flex; flex-direction:column; gap:6px; margin-bottom:10px}
+    input[type=text], input[type=password], input[type=date], input[type=time], select, textarea{
+      padding:10px; border-radius:10px; border:1px solid rgba(255,255,255,0.04);
+      background:var(--glass); color:var(--muted); outline:none;
+    }
+    textarea{min-height:72px; resize:vertical}
+
+    .row{display:flex; gap:8px}
+    .col{flex:1}
+
+    button{padding:10px 12px;border-radius:10px;border:0;cursor:pointer;background:linear-gradient(90deg,var(--neon-a),var(--neon-e)); color:#041021; font-weight:700}
+    .ghost{background:transparent;border:1px solid rgba(255,255,255,0.06); color:var(--muted); font-weight:600}
+    .danger{background:#ef4444;color:#fff}
+
+    .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .grid{display:grid; grid-template-columns:1fr 420px; gap:18px}
+    @media(max-width:980px){ .grid{grid-template-columns:1fr} }
+
+    .locs{display:flex; gap:8px}
+    .loc{flex:1;padding:8px;border-radius:8px;text-align:center;cursor:pointer;border:1px solid rgba(255,255,255,0.03); background:transparent}
+    .loc.active{box-shadow:0 10px 30px rgba(0,0,0,0.5), 0 0 22px 2px var(--accent); transform:translateY(-3px)}
+
+    .list{max-height:56vh; overflow:auto}
+    .shift{display:flex;justify-content:space-between;gap:12px;padding:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);margin-bottom:8px;background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.005))}
+
+    pre.stat-box{white-space:pre-wrap; font-size:13px; color:var(--muted); margin:6px 0 0 0}
+
+    /* modal for chef view */
+    .modal{
+      position:fixed; left:0; right:0; top:0; bottom:0; display:flex; align-items:center; justify-content:center;
+      background: rgba(2,6,23,0.6); z-index:1000;
+    }
+    .modal .panel{ width:calc(100% - 60px); max-width:720px; background:var(--panel); padding:14px; border-radius:12px; border:1px solid rgba(255,255,255,0.04)}
+    .user-row{display:flex; justify-content:space-between; align-items:center; padding:8px; border-radius:8px; border:1px solid rgba(255,255,255,0.03); margin-bottom:8px}
+
+    /* small screens */
+    @media(max-width:520px){
+      body{padding:12px}
+      .card{padding:12px}
+
+      /* layout -> single column and stacked controls */
+      .grid{grid-template-columns:1fr}
+      .auth-wrap{flex-direction:column; gap:12px}
+      .auth-box{max-width:100%}
+      .row{flex-direction:column}
+
+      /* make inputs and controls touch-friendly */
+      input[type=text], input[type=password], input[type=date], input[type=time], select, textarea, button{
+        font-size:15px; padding:12px; border-radius:10px;
+      }
+      button{width:100%; min-height:44px}
+      .small{padding:8px 10px; font-size:13px}
+
+      /* locations wrap nicely on small screens */
+      .locs{flex-wrap:wrap}
+      .loc{flex:1 1 48%; margin-bottom:8px; text-align:center}
+      .loc.active{box-shadow:none; transform:none}
+
+      /* shifts list stacked for readability */
+      .shift{flex-direction:column; align-items:flex-start; gap:8px}
+      .shift > div + div{margin-top:6px}
+
+      /* reduce list height on phones */
+      .list{max-height:40vh}
+
+      /* stats panel padding reduction */
+      .stats.card{padding:10px}
+
+      /* topbar stack */
+      .topbar{flex-direction:column; align-items:flex-start; gap:8px}
+      .topbar > div:last-child{display:flex; gap:8px; width:100%}
+      .topbar button{width:auto}
+
+      /* modal adjustments */
+      .modal .panel{ width:calc(100% - 30px); max-width:520px; max-height:90vh; overflow:auto }
+      .user-row{flex-direction:column; align-items:flex-start; gap:8px}
+      .user-row button{width:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div id="authView">
+      <h1>Запись смен — Аблайхана / Елемесова</h1>
+      <div class="auth-wrap">
+        <div class="auth-box">
+          <div class="field"><label>Логин (имя)</label><input id="authLogin" type="text" placeholder="Введите логин"></div>
+          <div class="field"><label>Пароль</label><input id="authPass" type="password" placeholder="Пароль"></div>
+          <div class="field"><label>Роль</label>
+            <select id="authRole"><option value="cook" selected>Повар</option><option value="chef">Шеф</option></select>
+            <div class="muted">Выберите роль при регистрации. Для входа используйте ту же роль.</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+            <label style="display:flex;align-items:center;gap:6px"><input id="rememberMe" type="checkbox"> Запомнить меня</label>
+            <div style="margin-left:auto" class="muted">Данные хранятся только на этом устройстве</div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button id="btnLogin">Войти</button>
+            <button id="btnRegister" class="ghost">Регистрация</button>
+          </div>
+          <div style="margin-top:12px;color:var(--muted);font-size:13px">Если вы регистрируетесь как шеф — убедитесь, что это ваш аккаунт. Пароли хранятся в виде SHA-256 хэша.</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="appView" style="display:none">
+      <div class="topbar">
+        <div style="display:flex;gap:12px;align-items:center">
+          <div style="width:56px;height:56px;border-radius:10px;background:linear-gradient(135deg,var(--neon-a),var(--neon-e));display:flex;align-items:center;justify-content:center">🍳</div>
+          <div>
+            <div id="welcome" style="font-weight:700">Привет</div>
+            <div id="roleLabel" class="muted">Роль: —</div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button id="exportBtnTop" class="ghost small">⬇️ Экспорт мои</button>
+          <button id="exportAllBtn" class="ghost small" style="display:none">⬇️ Экспорт все (шеф)</button>
+          <button id="logoutBtn" class="danger small">Выйти</button>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div>
+          <div style="font-weight:700;margin-bottom:8px">Добавить смену</div>
+
+          <div class="field"><label>Имя повара</label><input id="name" type="text" placeholder="Иван Иванов"></div>
+
+          <div class="row">
+            <div class="field col"><label>Дата</label><input id="date" type="date"></div>
+            <div class="field col"><label>Время начала</label><input id="start" type="time"></div>
+            <div class="field col"><label>Время конца</label><input id="end" type="time"></div>
+          </div>
+
+          <div class="field"><label>Точка</label>
+            <div class="locs"><div class="loc ab active" data-loc="Аблайхана">Аблайхана</div><div class="loc el" data-loc="Елемесова">Елемесова</div></div>
+          </div>
+
+          <div class="field"><label>Примечание</label><textarea id="notes" rows="2" placeholder="Например: замена"></textarea></div>
+
+          <div style="display:flex;gap:8px">
+            <button id="saveBtn">💾 Сохранить</button>
+            <button id="clearMyBtn" class="ghost">Очистить мои смены</button>
+            <button id="importBtn" class="ghost">⬆️ Импорт JSON</button>
+          </div>
+
+          <div class="muted" style="margin-top:8px">Время автоматически считается, включая переход через полночь.</div>
+
+          <div style="margin-top:14px">
+            <div style="font-weight:700">Мои смены</div>
+            <div id="list" class="list"></div>
+          </div>
+        </div>
+
+        <aside>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <div style="font-weight:700">Статистика</div>
+            <div class="muted">Итого: <span id="total-hours">0</span> ч</div>
+          </div>
+
+          <div class="stats card" style="padding:12px">
+            <div style="font-weight:700;color:var(--neon-a)">Аблайхана</div>
+            <pre id="ab-list" class="stat-box">—</pre>
+
+            <div style="font-weight:700;color:var(--neon-e);margin-top:8px">Елемесова</div>
+            <pre id="el-list" class="stat-box">—</pre>
+
+            <div id="adminPanel" style="margin-top:12px; display:none;">
+              <div style="font-weight:700;margin-bottom:6px">Панель шефа — все повара</div>
+              <div id="usersList"></div>
+              <div style="margin-top:8px"><button id="refreshStatsBtn" class="ghost">Обновить статистику</button></div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal placeholder -->
+  <div id="modalRoot"></div>
+
+  <script>
+    /* ---------- App logic ---------- */
+
+    // keys
+    const USERS_KEY = 'neon_users_v3'; // { username: { hash, role } }
+    const LS_SHIFTS_PREFIX = 'shifts_user_';
+    const CURRENT_USER_KEY = 'neon_current_user_v3';
+
+    // DOM refs
+    const authView = document.getElementById('authView');
+    const appView = document.getElementById('appView');
+    const authLogin = document.getElementById('authLogin');
+    const authPass = document.getElementById('authPass');
+    const authRole = document.getElementById('authRole');
+    const rememberMe = document.getElementById('rememberMe');
+    const btnLogin = document.getElementById('btnLogin');
+    const btnRegister = document.getElementById('btnRegister');
+    const logoutBtn = document.getElementById('logoutBtn');
+    const welcome = document.getElementById('welcome');
+    const roleLabel = document.getElementById('roleLabel');
+    const exportBtnTop = document.getElementById('exportBtnTop');
+    const exportAllBtn = document.getElementById('exportAllBtn');
+    const usersListEl = document.getElementById('usersList');
+    const adminPanel = document.getElementById('adminPanel');
+    const refreshStatsBtn = document.getElementById('refreshStatsBtn');
+    const nameInput = document.getElementById('name');
+    const dateInput = document.getElementById('date');
+    const startInput = document.getElementById('start');
+    const endInput = document.getElementById('end');
+    const notesInput = document.getElementById('notes');
+    const listEl = document.getElementById('list');
+    const totalHoursEl = document.getElementById('total-hours');
+    const abListEl = document.getElementById('ab-list');
+    const elListEl = document.getElementById('el-list');
+    const clearMyBtn = document.getElementById('clearMyBtn');
+    const importBtn = document.getElementById('importBtn');
+    const modalRoot = document.getElementById('modalRoot');
+
+    // simple sha256 hex
+    async function sha256hex(str){
+      const enc = new TextEncoder();
+      const data = enc.encode(str);
+      const hash = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+    }
+
+    function getUsers(){ try{ return JSON.parse(localStorage.getItem(USERS_KEY) || '{}'); } catch(e){ return {}; } }
+    function saveUsers(u){ localStorage.setItem(USERS_KEY, JSON.stringify(u)); }
+    function getShiftsFor(user){ try{ return JSON.parse(localStorage.getItem(LS_SHIFTS_PREFIX + user) || '[]'); } catch(e){ return []; } }
+    function saveShiftsFor(user, arr){ localStorage.setItem(LS_SHIFTS_PREFIX + user, JSON.stringify(arr)); }
+    function setCurrentUser(user, remember){ if(remember) localStorage.setItem(CURRENT_USER_KEY, user); else sessionStorage.setItem(CURRENT_USER_KEY, user); }
+    function clearCurrentUser(){ localStorage.removeItem(CURRENT_USER_KEY); sessionStorage.removeItem(CURRENT_USER_KEY); }
+    function getCurrentUser(){ return localStorage.getItem(CURRENT_USER_KEY) || sessionStorage.getItem(CURRENT_USER_KEY) || null; }
+
+    // time helpers
+    function parseTimeToMinutes(t){ const [hh,mm] = (t||'00:00').split(':').map(Number); return hh*60 + mm; }
+    function computeDurationMinutes(start, end){ const s = parseTimeToMinutes(start); const e = parseTimeToMinutes(end); if(isNaN(s)||isNaN(e)) return 0; let diff = e - s; if(diff <= 0) diff += 24*60; return diff; }
+    function minutesToHoursRounded(min){ return Math.round((min/60)*10)/10; }
+    function formatMinutes(min){ const h = Math.floor(min/60); const m = min%60; return `${h}ч ${m}м`; }
+
+    // UI: role-protected registration/login
+    btnRegister.addEventListener('click', async ()=>{
+      const username = authLogin.value.trim();
+      const password = authPass.value;
+      const role = authRole.value;
+      if(!username || !password){ alert('Введите логин и пароль для регистрации.'); return; }
+      const users = getUsers();
+      if(users[username]){ alert('Пользователь уже зарегистрирован. Войдите.'); return; }
+      const hash = await sha256hex(password);
+      users[username] = { hash, role };
+      saveUsers(users);
+      alert('Регистрация успешна. Теперь войдите.');
+    });
+
+    btnLogin.addEventListener('click', async ()=>{
+      const username = authLogin.value.trim();
+      const password = authPass.value;
+      const wantedRole = authRole.value;
+      const remember = rememberMe.checked;
+      if(!username || !password){ alert('Введите логин и пароль.'); return; }
+      const users = getUsers();
+      const rec = users[username];
+      if(!rec){ alert('Пользователь не найден.'); return; }
+      // prevent wrong-role login: role must match selected role
+      if(rec.role !== wantedRole){ alert('Неверная роль для этого аккаунта. Проверьте выбранную роль.'); return; }
+      const given = await sha256hex(password);
+      if(given !== rec.hash){ alert('Неверный пароль.'); return; }
+      setCurrentUser(username, remember);
+      showAppForUser(username);
+    });
+
+    logoutBtn.addEventListener('click', ()=>{
+      clearCurrentUser();
+      authView.style.display = 'block';
+      appView.style.display = 'none';
+      authLogin.value = ''; authPass.value = '';
+      // clear UI
+    });
+
+    // show app for user
+    let currentUser = getCurrentUser();
+    let currentRole = null;
+    async function showAppForUser(username){
+      authView.style.display = 'none';
+      appView.style.display = 'block';
+      const users = getUsers();
+      const role = users[username]?.role || 'cook';
+      currentUser = username;
+      currentRole = role;
+      welcome.textContent = `Привет, ${username}`;
+      roleLabel.textContent = `Роль: ${role === 'chef' ? 'Шеф' : 'Повар'}`;
+      // role UI
+      if(role === 'chef'){
+        adminPanel.style.display = 'block';
+        exportAllBtn.style.display = 'inline-block';
+      } else {
+        adminPanel.style.display = 'none';
+        exportAllBtn.style.display = 'none';
+      }
+      // default form name
+      nameInput.value = username;
+      renderMyShifts();
+      renderAdminIfNeeded();
+    }
+
+    if(currentUser){
+      // if session exists, show app
+      showAppForUser(currentUser);
+    }
+
+    // location toggles
+    document.querySelectorAll('.loc').forEach(el=>{
+      el.addEventListener('click', ()=>{ document.querySelectorAll('.loc').forEach(x=>x.classList.remove('active')); el.classList.add('active'); });
+    });
+
+    // save shift (only for logged in)
+    document.getElementById('saveBtn').addEventListener('click', ()=>{
+      if(!currentUser){ alert('Сначала войдите.'); return; }
+      const name = nameInput.value.trim();
+      const date = dateInput.value;
+      const start = startInput.value;
+      const end = endInput.value;
+      const notes = notesInput.value.trim();
+      const locEl = document.querySelector('.loc.active');
+      const location = locEl ? locEl.dataset.loc : 'Аблайхана';
+      if(!name || !date || !start || !end){ alert('Укажите имя, дату и время начала/конца.'); return; }
+      const minutes = computeDurationMinutes(start, end);
+      if(minutes <= 0){ alert('Неверное время смены.'); return; }
+      const arr = getShiftsFor(currentUser);
+      arr.push({ name, date, start, end, notes, location });
+      saveShiftsFor(currentUser, arr);
+      renderMyShifts();
+      renderAdminIfNeeded();
+      // brief feedback
+      const btn = document.getElementById('saveBtn'); const old = btn.textContent;
+      btn.textContent = '✅ Сохранено'; setTimeout(()=>btn.textContent = old, 900);
+    });
+
+    function renderMyShifts(){
+      if(!currentUser) return;
+      const arr = getShiftsFor(currentUser);
+      listEl.innerHTML = '';
+      if(arr.length === 0){
+        listEl.innerHTML = '<div class="muted">Пока нет смен — добавьте первую</div>';
+        totalHoursEl.textContent = '0';
+        abListEl.textContent = '—';
+        elListEl.textContent = '—';
+        return;
+      }
+      let totalMin = 0;
+      const stats = { 'Аблайхана': {}, 'Елемесова': {} };
+
+      arr.slice().reverse().forEach((s, idxReverse) => {
+        const minutes = computeDurationMinutes(s.start, s.end);
+        totalMin += minutes;
+        const wrapper = document.createElement('div'); wrapper.className = 'shift';
+        const left = document.createElement('div');
+        left.innerHTML = `<div style="font-weight:700">${s.name}</div><div class="muted">${s.date} • ${s.start}—${s.end} • ${s.location}</div><div class="muted">${s.notes || ''}</div>`;
+        const right = document.createElement('div');
+        const delBtn = document.createElement('button'); delBtn.className = 'ghost'; delBtn.textContent = 'Удалить';
+        // compute actual index in original order
+        const realIndex = arr.length - 1 - idxReverse;
+        delBtn.addEventListener('click', ()=>{
+          if(!confirm('Удалить эту смену?')) return;
+          const a = getShiftsFor(currentUser);
+          a.splice(realIndex, 1);
+          saveShiftsFor(currentUser, a);
+          renderMyShifts();
+          renderAdminIfNeeded();
+        });
+        right.appendChild(delBtn);
+        wrapper.appendChild(left); wrapper.appendChild(right);
+        listEl.appendChild(wrapper);
+
+        // stats
+        const map = stats[s.location] || (stats[s.location] = {});
+        if(!map[s.name]) map[s.name] = { shifts:0, minutes:0 };
+        map[s.name].shifts += 1;
+        map[s.name].minutes += minutes;
+      });
+
+      totalHoursEl.textContent = minutesToHoursRounded(totalMin);
+      abListEl.textContent = renderPoint(stats, 'Аблайхана');
+      elListEl.textContent = renderPoint(stats, 'Елемесова');
+    }
+
+    function renderPoint(stats, point){
+      const map = stats[point] || {};
+      const entries = Object.entries(map).sort((a,b)=> b[1].minutes - a[1].minutes);
+      if(entries.length === 0) return '—';
+      return entries.map(([name, v]) => `${name} — ${v.shifts} смен, ${minutesToHoursRounded(v.minutes)} ч (${formatMinutes(v.minutes)})`).join('\n');
+    }
+
+    // clear my shifts
+    clearMyBtn.addEventListener('click', ()=>{
+      if(!currentUser){ alert('Войдите.'); return; }
+      if(!confirm('Удалить все ваши смены?')) return;
+      saveShiftsFor(currentUser, []);
+      renderMyShifts();
+      renderAdminIfNeeded();
+    });
+
+    // import JSON to current
+    importBtn.addEventListener('click', ()=>{
+      if(!currentUser){ alert('Войдите.'); return; }
+      const txt = prompt('Вставьте JSON-массив смен для текущего пользователя (пример: [{"name":"Иван","date":"2025-10-20","start":"22:00","end":"01:00","location":"Аблайхана","notes":""}])');
+      if(!txt) return;
+      try{
+        const data = JSON.parse(txt);
+        if(!Array.isArray(data)) throw 0;
+        const arr = getShiftsFor(currentUser).concat(data);
+        saveShiftsFor(currentUser, arr);
+        renderMyShifts();
+        renderAdminIfNeeded();
+        alert('Импортировано: ' + data.length);
+      }catch(e){
+        alert('Неверный формат JSON.');
+      }
+    });
+
+    // export CSV personal
+    exportBtnTop.addEventListener('click', ()=>{
+      if(!currentUser){ alert('Войдите.'); return; }
+      const arr = getShiftsFor(currentUser);
+      if(arr.length === 0){ alert('Нет смен для экспорта.'); return; }
+      const header = ['date','location','name','start','end','duration_minutes','notes'];
+      const lines = arr.map(r=>{
+        const minutes = computeDurationMinutes(r.start, r.end);
+        const esc = s => '"' + String(s || '').replace(/"/g, '""') + '"';
+        return [r.date, r.location, r.name, r.start, r.end, minutes, r.notes || ''].map(esc).join(',');
+      });
+      const csv = [header.join(',')].concat(lines).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = currentUser + '_shifts.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    // admin view rendering
+    function renderAdminIfNeeded(){
+      const users = getUsers();
+      if(!currentUser) return;
+      const role = users[currentUser]?.role;
+      if(role !== 'chef'){
+        adminPanel.style.display = 'none';
+        exportAllBtn.style.display = 'none';
+        return;
+      }
+      adminPanel.style.display = 'block';
+      exportAllBtn.style.display = 'inline-block';
+      usersListEl.innerHTML = '';
+      // aggregate
+      const overall = {};
+      Object.keys(users).forEach(u=>{
+        const arr = getShiftsFor(u);
+        let totalMin = 0;
+        const perPoint = {'Аблайхана':0, 'Елемесова':0};
+        arr.forEach(s=>{
+          const m = computeDurationMinutes(s.start, s.end);
+          totalMin += m;
+          perPoint[s.location] = (perPoint[s.location] || 0) + m;
+        });
+        overall[u] = { totalMin, perPoint, shifts: arr.length };
+      });
+      const entries = Object.entries(overall).sort((a,b)=> b[1].totalMin - a[1].totalMin);
+      entries.forEach(([u, data])=>{
+        const div = document.createElement('div');
+        div.className = 'user-row';
+        div.innerHTML = `<div><strong>${u}</strong><div class="muted">${data.shifts} смен(ы)</div></div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <div class="muted">${minutesToHoursRounded(data.totalMin)} ч</div>
+            <button class="ghost" data-user="${u}">Просмотр</button>
+          </div>`;
+        usersListEl.appendChild(div);
+        div.querySelector('button').addEventListener('click', ()=>{ openUserModal(u); });
+      });
+    }
+
+    // modal to view user's shifts (chef only)
+    function openUserModal(username){
+      const arr = getShiftsFor(username);
+      const modal = document.createElement('div'); modal.className = 'modal';
+      const panel = document.createElement('div'); panel.className = 'panel';
+      const title = document.createElement('div'); title.style.marginBottom = '8px'; title.innerHTML = `<strong>Смены ${username}</strong>`;
+      const content = document.createElement('div');
+      if(arr.length === 0) content.innerHTML = '<div class="muted">Нет смен.</div>';
+      else {
+        arr.slice().reverse().forEach((s, idxRev)=>{
+          const idx = arr.length - 1 - idxRev;
+          const m = computeDurationMinutes(s.start, s.end);
+          const row = document.createElement('div');
+          row.style.display = 'flex'; row.style.justifyContent = 'space-between'; row.style.alignItems = 'center';
+          row.style.padding = '8px'; row.style.borderBottom = '1px solid rgba(255,255,255,0.03)';
+          row.innerHTML = `<div><div style="font-weight:700">${s.date} • ${s.location} • ${s.start}-${s.end}</div><div class="muted">${s.notes || ''}</div></div>`;
+          const controls = document.createElement('div');
+          const del = document.createElement('button'); del.className = 'ghost'; del.textContent = 'Удалить';
+          del.addEventListener('click', ()=>{
+            if(!confirm('Шеф удаляет смену. Продолжить?')) return;
+            const cur = getShiftsFor(username);
+            cur.splice(idx, 1);
+            saveShiftsFor(username, cur);
+            // refresh modal content
+            panel.remove();
+            modal.remove();
+            openUserModal(username);
+            // update UI
+            renderAdminIfNeeded();
+            if(username === currentUser) renderMyShifts();
+          });
+          controls.appendChild(del);
+          row.appendChild(controls);
+          content.appendChild(row);
+        });
+      }
+      const closeRow = document.createElement('div'); closeRow.style.marginTop = '10px'; closeRow.style.display = 'flex'; closeRow.style.justifyContent = 'flex-end';
+      const closeBtn = document.createElement('button'); closeBtn.className = 'ghost'; closeBtn.textContent = 'Закрыть';
+      closeBtn.addEventListener('click', ()=>{ modal.remove(); });
+      closeRow.appendChild(closeBtn);
+      panel.appendChild(title); panel.appendChild(content); panel.appendChild(closeRow);
+      modal.appendChild(panel); modalRoot.appendChild(modal);
+    }
+
+    // show detail via alert (older fallback)
+    function showUserDetail(username){
+      const arr = getShiftsFor(username);
+      let txt = `Смены пользователя ${username}:\n\n`;
+      if(arr.length === 0) txt += 'Нет смен.';
+      else arr.forEach(s=>{
+        const m = computeDurationMinutes(s.start, s.end);
+        txt += `${s.date} ${s.start}-${s.end} ${s.location} — ${minutesToHoursRounded(m)} ч (${formatMinutes(m)})\n`;
+      });
+      alert(txt);
+    }
+
+    // export all (chef)
+    exportAllBtn.addEventListener('click', ()=>{
+      const users = getUsers();
+      const header = ['user','date','location','name','start','end','duration_minutes','notes'];
+      const lines = [];
+      Object.keys(users).forEach(u=>{
+        const arr = getShiftsFor(u);
+        arr.forEach(r=>{
+          const m = computeDurationMinutes(r.start, r.end);
+          const esc = s => '"' + String(s || '').replace(/"/g,'""') + '"';
+          lines.push([u, r.date, r.location, r.name, r.start, r.end, m, r.notes || ''].map(esc).join(','));
+        });
+      });
+      if(lines.length === 0){ alert('Нет данных для экспорта.'); return; }
+      const csv = [header.join(',')].concat(lines).join('\n');
+      const blob = new Blob([csv], { type:'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'all_shifts.csv'; a.click(); URL.revokeObjectURL(url);
+    });
+
+    refreshStatsBtn.addEventListener('click', ()=>{
+      renderAdminIfNeeded(); alert('Статистика обновлена.');
+    });
+
+    // helper show if current session exists
+    if(currentUser){
+      showAppForUser(currentUser);
+    }
+
+    // initialize default date/time values
+    (function(){
+      const d = new Date();
+      const yyyy = d.getFullYear();
+      const mm = String(d.getMonth()+1).padStart(2, '0');
+      const dd = String(d.getDate()).padStart(2, '0');
+      dateInput.value = `${yyyy}-${mm}-${dd}`;
+      startInput.value = '10:00';
+      endInput.value = '01:00';
+    })();
+
+    // prevent cooks from logging into chef account by role check is already enforced during login
+    // end of script
+  </script>
+</body>
+</html>
